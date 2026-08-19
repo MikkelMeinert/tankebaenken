@@ -1,0 +1,7 @@
+{
+  "name": "tankebaenken-tests",
+  "private": true,
+  "description": "jsdom test suite for Tankebænken — run before every handover/deploy",
+  "scripts": { "test": "node run-tests.js" },
+  "dependencies": { "jsdom": "^24.0.0" }
+}

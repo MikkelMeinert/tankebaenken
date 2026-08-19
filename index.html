@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16181d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tankebænken">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Tankebænken</title>
+<style>
+:root{
+  --bg:#f4f4f6; --card:#ffffff; --ink:#1c1e24; --ink2:#5a5e6a; --line:#e2e3e8;
+  --accent:#b0721e; --accent-ink:#fff; --action:#2b5fa8; --action-ink:#fff;
+  --lens:#7a4fa3; --hypothesis:#2e7d4f; --split:#b0721e; --repackages:#6a6e78;
+  --extends:#2a7f8a; --contradicts:#a33b3b; --open:#2b5fa8;
+  --ok:#2e7d4f; --chip:#ececf0; --radius:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16181d; --card:#1f222a; --ink:#e8e9ec; --ink2:#9aa0ac; --line:#2c303a;
+    --accent:#d79a3d; --action:#6f9fdc; --action-ink:#12141a; --chip:#2a2e38;
+    --lens:#a97fd0; --hypothesis:#5cb385; --split:#d79a3d; --repackages:#8b909c;
+    --extends:#5fb3c0; --contradicts:#d07070; --open:#6f9fdc;
+  }
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--ink);
+  padding-bottom:calc(64px + env(safe-area-inset-bottom));
+}
+header{
+  padding:calc(12px + env(safe-area-inset-top)) 16px 10px;
+  background:var(--bg); position:sticky; top:0; z-index:20;
+  border-bottom:1px solid var(--line);
+}
+.h-row{display:flex; align-items:baseline; justify-content:space-between; gap:8px}
+h1{font-size:20px; margin:0; letter-spacing:.2px}
+h1 .tb-dot{color:var(--accent)}
+#btn-settings{background:none;border:none;color:var(--ink2);font-size:18px;padding:4px 6px;cursor:pointer}
+.weekstrip{display:flex; gap:14px; align-items:center; margin-top:6px; font-size:14px; color:var(--ink2)}
+.weekstrip b{color:var(--ink); font-weight:600}
+.weekstrip .done{color:var(--ok)}
+.valve{font-size:12.5px; color:var(--ink2); margin-top:3px; font-style:italic}
+main{max-width:680px; margin:0 auto; padding:14px 14px 30px}
+.tabs{
+  position:fixed; bottom:0; left:0; right:0; z-index:30;
+  display:flex; background:var(--card); border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tabs button{
+  flex:1; padding:11px 4px 9px; background:none; border:none; cursor:pointer;
+  font-size:13px; color:var(--ink2); border-top:2px solid transparent;
+}
+.tabs button.active{color:var(--accent); border-top-color:var(--accent); font-weight:600}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px; margin-bottom:12px;
+}
+.card h3{margin:0 0 4px; font-size:16px}
+.muted{color:var(--ink2); font-size:13.5px}
+.small{font-size:12.5px}
+.badge{
+  display:inline-block; padding:2px 9px; border-radius:99px; font-size:12px;
+  font-weight:600; color:#fff; vertical-align:middle;
+}
+.badge.lens{background:var(--lens)} .badge.hypothesis{background:var(--hypothesis)}
+.badge.split{background:var(--split)} .badge.repackages{background:var(--repackages)}
+.badge.extends{background:var(--extends)} .badge.contradicts{background:var(--contradicts)}
+.badge.open{background:var(--open)}
+.btn{
+  display:inline-block; border:none; border-radius:9px; padding:10px 14px;
+  font-size:14.5px; font-weight:600; cursor:pointer;
+  background:var(--action); color:var(--action-ink);
+}
+.btn.secondary{background:var(--chip); color:var(--ink)}
+.btn.small{padding:6px 10px; font-size:13px}
+.btn.accent{background:var(--accent); color:var(--accent-ink)}
+.btn:disabled{opacity:.45; cursor:default}
+.rowbtns{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+textarea,input[type=text],input[type=number],select{
+  width:100%; background:var(--bg); color:var(--ink); border:1px solid var(--line);
+  border-radius:8px; padding:9px 10px; font:inherit; font-size:15px;
+}
+textarea{min-height:84px; resize:vertical}
+label{font-size:13px; color:var(--ink2); display:block; margin:10px 0 4px; font-weight:600}
+details{margin-top:8px}
+summary{cursor:pointer; font-size:14px; color:var(--action); font-weight:600; user-select:none}
+.stepblock{margin:10px 0; padding:10px 12px; background:var(--bg); border-radius:8px}
+.stepblock .cue{font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.3px; text-transform:uppercase}
+.stepblock .cue-hint{font-size:12px; color:var(--ink2); font-style:italic; margin-bottom:4px}
+.stepblock p{margin:4px 0 0; font-size:14px; white-space:pre-wrap}
+.stone-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+.qitem{display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--line)}
+.qitem:last-child{border-bottom:none}
+.qitem .qtext{flex:1; font-size:14.5px}
+.qitem .tagline{font-size:12px; color:var(--ink2); margin-top:2px}
+.chip{display:inline-block; background:var(--chip); border-radius:99px; padding:2px 8px; font-size:12px; color:var(--ink2)}
+.returnbox{margin-top:10px; padding:10px 12px; border:1px dashed var(--line); border-radius:8px; font-size:14px}
+.returnbox .rq{color:var(--ink2); font-size:13px}
+.toast{
+  position:fixed; left:50%; transform:translateX(-50%); bottom:calc(76px + env(safe-area-inset-bottom));
+  background:var(--ink); color:var(--bg); padding:9px 16px; border-radius:99px; font-size:14px;
+  opacity:0; transition:opacity .25s; pointer-events:none; z-index:50; max-width:86vw; text-align:center;
+}
+.toast.show{opacity:1}
+.stepper{display:flex; align-items:center; gap:10px}
+.stepper button{width:40px;height:40px;border-radius:9px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:20px;cursor:pointer}
+.stepper .val{min-width:70px; text-align:center; font-weight:700; font-size:17px}
+.copybox{width:100%; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; min-height:150px}
+.hidden{display:none !important}
+.booklist .qitem .qtext b{font-weight:600}
+.flash{animation:flash .8s ease}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.section-title{font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink2); margin:18px 0 8px; font-weight:700}
+.nagdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--contradicts);margin-left:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-row">
+    <h1>Tankebænken<span class="tb-dot">.</span></h1>
+    <button id="btn-settings" aria-label="Settings">⚙︎</button>
+  </div>
+  <div class="weekstrip" id="weekstrip"></div>
+  <div class="valve">Bad week? Cut the bench, pick an easy read. That's the design, not a failure.</div>
+</header>
+
+<main>
+  <section id="view-shelf"></section>
+  <section id="view-quarry" class="hidden"></section>
+  <section id="view-reading" class="hidden"></section>
+  <section id="view-settings" class="hidden"></section>
+</main>
+
+<nav class="tabs">
+  <button id="tab-shelf" class="active">Shelf</button>
+  <button id="tab-quarry">Quarry</button>
+  <button id="tab-reading">Reading</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* Tankebænken v1 — single-file PWA. State: one localStorage key, stable ids. */
+'use strict';
+const APP_VERSION = '1.0.0';
+const LS_KEY = 'tankebaenken-v1';
+
+/* ---------- focus cues (one line per step, expandable hint) ---------- */
+const STEPS = ['strip','dig','break','follow','place'];
+const CUES = {
+  strip:  {name:'Strip',  cue:'What is it actually saying?',
+           hint:'Plain, boring language. Find the weak/strong split — then check for another split hiding inside the strong version. Record what is NOT being claimed.'},
+  dig:    {name:'Dig',    cue:'What is it standing on?',
+           hint:'Name the legs. Turn every attack-impulse into a named assumption — holster the punch, spend it at Break. Which leg is weakest?'},
+  break:  {name:'Break',  cue:'Can I break it?',
+           hint:'Structural beats individual. Three competing explanations. Verdict: falsifiable, or a lens? (Restraint: understand before you swing.)'},
+  follow: {name:'Follow', cue:'Where does it lead?',
+           hint:'Assume it true — what else should show up that nobody mentioned? The Return is the resolution. Predictions only for genuine uncertainty.'},
+  place:  {name:'Place',  cue:'Where does it sit?',
+           hint:'Reminds me of? Extends / contradicts / repackages? Claim a reading path — books enter the pile by earning their place.'}
+};
+const VERDICTS = ['open','lens','hypothesis','split','repackages','extends','contradicts'];
+const SESSION_TYPES = ['conversation','claim','explanation','agree','deep-follow'];
+
+/* ---------- state ---------- */
+let S = null;
+
+function freshState(){
+  const now = new Date().toISOString();
+  return {
+    version: 1, appVersion: APP_VERSION, createdAt: now,
+    stones: [], quarry: [], books: [], readingLog: [],
+    counters: {stone:0, quarry:0, book:0, reading:0},
+    settings: {weeklyReadingTarget: 2, theme: '', lastMinutes: 25, lastBookId: null},
+    backup: {lastBackupAt: null, entriesSince: 0}
+  };
+}
+function nid(kind){
+  S.counters[kind] += 1;
+  const p = {stone:'st', quarry:'q', book:'b', reading:'r'}[kind];
+  return p + '-' + String(S.counters[kind]).padStart(4,'0');
+}
+
+/* ---------- seed: session 1 (2026-08-19), the voice stone ---------- */
+function seed(){
+  const D = '2026-08-19T18:00:00.000Z';
+  const st = {
+    id:'st-0001', createdAt:D,
+    title:'Social roles and authority are made and maintained through the voice (spoken communication)',
+    source:'Conversation with a friend', sessionType:'conversation',
+    verdict:'split',
+    verdictNote:'Strong constitutive claim = lens (unfalsifiable by elasticity of "voice"). Token claim — THIS teacher\'s authority in THIS room is substantially made through vocal performance — = genuine hypothesis. Refined at Follow: voice constitutes authority at establishment, not maintenance (sedimentation).',
+    steps:{
+      strip:'Bare claim: in spoken communication, social roles and authority (teacher–student, expert–layman) are not merely signaled by the voice but actively made, maintained and changed through it.\nWeak: how you speak affects how you are perceived.\nStrong: the speaker–listener relationship is constituted in the voice.\nScope: spoken only (the narrowing later proved to be a bandage).\nNoted: friend slides between physical voice and voice-as-persona; causal direction unspecified.',
+      dig:'Legs — A residue: voice does work beyond the staged scene. B performance: the effect comes from vocal performance, not demographic leakage (gender, age, class accent, education). C agency: individual voice-work reaches up to social-level facts. D channel: voice is load-bearing vs body language, eye contact, action.\nWeakest examined: C — voice lets you shape within existing roles; changing the role-type itself seems to need cultural drift.',
+      break:'Structural counterexamples: the deaf classroom (full authority, zero voice → voice not necessary; the "spoken only" scope was protecting the claim) and circularity (role shapes voice as much as voice shapes role — correlations cannot discriminate direction).\nCompeting explanations: demographic leakage; scene/institution does the work; content-not-voice drives the interaction.\nSteelman survived at token level: substitute teachers with equal standing, unequal rooms; du/De drift as accumulated performance.',
+      follow:'If the token claim is true: laryngitis should cost room-control — but it does not once authority is established → refinement: constitutive at establishment, sedimented at maintenance. Also expected: a new coach\'s authority settles in the first minutes, before reputation exists; the voice-coaching industry works.\nPredictions: demoted by design — none queued.',
+      place:'Reminds of: social-psychology role theory; public-speaker voice training (esp. women lowering pitch); Foucault\'s net of power.\nVerdict: a known idea in Heideggerian clothing — Goffman said it sociologically in 1956.\nReading path claimed (Goffman, Austin; pointer: Berger & Luckmann on sedimentation).'
+    },
+    readingPath:'Goffman — The Presentation of Self in Everyday Life · Austin — How to Do Things with Words · pointer: Berger & Luckmann, "sedimentation"',
+    ret:{queued:'Next talk with the friend who proposed it', returned:false, note:'', date:null},
+    spareIds:['q-0001','q-0002','q-0003','q-0004','q-0005'],
+    minutes:null
+  };
+  const spares = [
+    'Malleability: a voice can be "put on" and worked on — and roles implicitly reshape the voice (the teacher\'s voice comes from teacher training).',
+    'Evidential claim: the speaker–listener relationship could be recovered from a recording alone. The testable one in the family.',
+    'Extension: does "voice" survive the move to written communication, where it goes fully metaphorical?',
+    'Voice training vs demographic leakage: speakers (esp. women) train pitch to counteract what the voice leaks about them. Industry-scale evidence?',
+    'Establishment vs maintenance: authority is performed into existence, then sediments and coasts. Generalize beyond voice?'
+  ].map((t,i)=>({id:'q-000'+(i+1), createdAt:D, text:t, source:'Bench session · voice stone',
+                 parentStoneId:'st-0001', status:'open', benchedAsStoneId:null}));
+  const books = [
+    {id:'b-0001', title:'The Presentation of Self in Everyday Life', author:'Erving Goffman', kind:'thinking', status:'shelf', earnedBy:'st-0001', addedAt:D},
+    {id:'b-0002', title:'How to Do Things with Words', author:'J.L. Austin', kind:'thinking', status:'shelf', earnedBy:'st-0001', addedAt:D}
+  ];
+  S.stones.push(st); S.quarry.push(...spares); S.books.push(...books);
+  S.counters = {stone:1, quarry:5, book:2, reading:0};
+}
+
+function load(){
+  let raw = null;
+  try{ raw = localStorage.getItem(LS_KEY); }catch(e){}
+  if(raw){
+    try{ S = JSON.parse(raw); }
+    catch(e){ S = null; }
+  }
+  if(!S || typeof S !== 'object' || !Array.isArray(S.stones)){
+    S = freshState(); seed(); save(false);
+  }
+}
+function save(countEntry){
+  if(countEntry !== false){ S.backup.entriesSince = (S.backup.entriesSince||0)+1; }
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+  renderHeader();
+}
+
+/* ---------- helpers ---------- */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isoWeekKey(d){
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = dt.getUTCDay() || 7;
+  dt.setUTCDate(dt.getUTCDate() + 4 - day);
+  const yStart = new Date(Date.UTC(dt.getUTCFullYear(),0,1));
+  const week = Math.ceil((((dt - yStart)/86400000) + 1)/7);
+  return dt.getUTCFullYear() + '-W' + String(week).padStart(2,'0');
+}
+function weekStats(){
+  const wk = isoWeekKey(new Date());
+  const bench = S.stones.filter(st => isoWeekKey(new Date(st.createdAt)) === wk).length;
+  const reading = S.readingLog.filter(r => isoWeekKey(new Date(r.date+'T12:00:00')) === wk).length;
+  return {week: wk, bench, reading, target: S.settings.weeklyReadingTarget};
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+async function copyText(text){
+  try{
+    if(navigator.share){ await navigator.share({text}); return true; }
+  }catch(e){ if(e && e.name==='AbortError') return false; }
+  try{ await navigator.clipboard.writeText(text); toast('Copied to clipboard'); return true; }
+  catch(e){ toast('Could not copy — select and copy manually'); return false; }
+}
+/* ---------- stone card: fixed exchange format with the Sparring Partner ---------- */
+function stoneCardTemplate(){
+  return [
+    'STONE CARD v1',
+    'TITLE: ',
+    'SOURCE: ',
+    'TYPE: ' + SESSION_TYPES.join('|'),
+    'VERDICT: ' + VERDICTS.join('|'),
+    'VERDICT NOTE: ',
+    'STRIP: ',
+    'DIG: ',
+    'BREAK: ',
+    'FOLLOW: ',
+    'PLACE: ',
+    'READING PATH: ',
+    'RETURN: ',
+    'SPARES:',
+    '- '
+  ].join('\n');
+}
+function parseStoneCard(text){
+  if(!text || !/STONE CARD/i.test(text)) return {ok:false, error:'Not a stone card (missing "STONE CARD" header).'};
+  const KEYS = ['TITLE','SOURCE','TYPE','VERDICT','VERDICT NOTE','STRIP','DIG','BREAK','FOLLOW','PLACE','READING PATH','RETURN','SPARES'];
+  const lines = text.split(/\r?\n/);
+  const out = {spares:[]};
+  let cur = null;
+  for(const line of lines){
+    const m = line.match(/^([A-Z][A-Z ]+?):\s?(.*)$/);
+    if(m && KEYS.includes(m[1].trim())){
+      cur = m[1].trim();
+      if(cur === 'SPARES'){ continue; }
+      out[cur] = m[2] || '';
+    } else if(cur === 'SPARES'){
+      const sm = line.match(/^\s*[-•]\s*(.+)$/);
+      if(sm && sm[1].trim()) out.spares.push(sm[1].trim());
+    } else if(cur && cur !== 'SPARES'){
+      if(line.trim() !== '' || out[cur] !== '') out[cur] = (out[cur] ? out[cur] + '\n' : '') + line;
+    }
+  }
+  for(const k of KEYS){ if(k!=='SPARES' && typeof out[k]==='string') out[k] = out[k].trim(); }
+  const title = out['TITLE'] || '';
+  if(!title) return {ok:false, error:'Card has no TITLE.'};
+  let verdict = (out['VERDICT']||'open').toLowerCase().trim();
+  if(!VERDICTS.includes(verdict)) verdict = 'open';
+  let type = (out['TYPE']||'').toLowerCase().trim();
+  if(!SESSION_TYPES.includes(type)) type = '';
+  return {ok:true, stone:{
+    title, source: out['SOURCE']||'', sessionType:type, verdict,
+    verdictNote: out['VERDICT NOTE']||'',
+    steps:{ strip:out['STRIP']||'', dig:out['DIG']||'', break:out['BREAK']||'',
+            follow:out['FOLLOW']||'', place:out['PLACE']||'' },
+    readingPath: out['READING PATH']||'',
+    ret:{queued: out['RETURN']||'', returned:false, note:'', date:null},
+    spares: out.spares
+  }};
+}
+function fileStoneCard(text){
+  const p = parseStoneCard(text);
+  if(!p.ok) return p;
+  const st = p.stone;
+  const stone = {
+    id: nid('stone'), createdAt: new Date().toISOString(),
+    title: st.title, source: st.source, sessionType: st.sessionType,
+    verdict: st.verdict, verdictNote: st.verdictNote,
+    steps: st.steps, readingPath: st.readingPath, ret: st.ret,
+    spareIds: [], minutes: null
+  };
+  for(const sp of st.spares){
+    const q = {id: nid('quarry'), createdAt: stone.createdAt, text: sp,
+               source: 'Bench session · ' + stone.title.slice(0,40),
+               parentStoneId: stone.id, status:'open', benchedAsStoneId:null};
+    S.quarry.push(q); stone.spareIds.push(q.id);
+  }
+  S.stones.unshift(stone);
+  save();
+  return {ok:true, stone};
+}
+
+/* ---------- session kickoff ---------- */
+function buildKickoff(){
+  const w = weekStats();
+  const recent = S.stones.slice(0,2).map(s=>'- '+s.title+' ['+s.verdict+']');
+  const open = S.quarry.filter(q=>q.status==='open').slice(0,6);
+  const lastType = (S.stones[0] && S.stones[0].sessionType) || 'none';
+  const lines = [
+    'BENCH SESSION KICKOFF — Tankebænken',
+    'Date: ' + todayStr(),
+    S.settings.theme ? 'Current theme: ' + S.settings.theme : 'Current theme: (none set)',
+    'Last session type: ' + lastType + '  (variety, not law: claim / explanation / agree / conversation / deep-follow)',
+    '',
+    recent.length ? 'Recent stones:' : 'Recent stones: (shelf is empty)',
+    ...recent,
+    '',
+    open.length ? 'Open quarry — pick one, or bring a fresh idea:' : 'Open quarry: (empty — bring a fresh idea)',
+    ...open.map((q,i)=>(i+1)+'. '+q.text),
+    '',
+    'House rules: checklist not sequence · partial benches are legal · Break restraint (understand first) ·',
+    'the Return replaces predictions · end the session with a STONE CARD v1.'
+  ];
+  return lines.join('\n');
+}
+
+/* ---------- mutations ---------- */
+function addQuarry(text, source){
+  text = (text||'').trim();
+  if(!text) return null;
+  const q = {id: nid('quarry'), createdAt: new Date().toISOString(), text,
+             source:(source||'').trim(), parentStoneId:null, status:'open', benchedAsStoneId:null};
+  S.quarry.unshift(q); save();
+  return q;
+}
+function dropQuarry(id){
+  const q = S.quarry.find(x=>x.id===id); if(!q) return;
+  q.status = (q.status==='dropped') ? 'open' : 'dropped'; save();
+}
+function addBook(title, author, kind){
+  title=(title||'').trim(); if(!title) return null;
+  const b = {id: nid('book'), title, author:(author||'').trim(),
+             kind: kind==='easy'?'easy':'thinking', status:'shelf', earnedBy:null, addedAt:new Date().toISOString()};
+  S.books.unshift(b); save();
+  return b;
+}
+function setBookStatus(id, status){
+  const b = S.books.find(x=>x.id===id); if(!b) return;
+  b.status = status; save();
+}
+function logReading(bookId, minutes, date){
+  const b = S.books.find(x=>x.id===bookId); if(!b) return null;
+  const r = {id: nid('reading'), date: date||todayStr(), bookId, minutes: Math.max(1, minutes|0)};
+  S.readingLog.unshift(r);
+  S.settings.lastMinutes = r.minutes; S.settings.lastBookId = bookId;
+  if(b.status==='shelf') b.status = 'reading';
+  save();
+  return r;
+}
+function markReturned(stoneId, note){
+  const st = S.stones.find(x=>x.id===stoneId); if(!st) return null;
+  st.ret.returned = true; st.ret.note = (note||'').trim(); st.ret.date = todayStr();
+  save();
+  return st;
+}
+
+/* ---------- export / import ---------- */
+function exportJSON(){ return JSON.stringify(S, null, 2); }
+function importJSON(text){
+  let obj;
+  try{ obj = JSON.parse(text); }catch(e){ return {ok:false, error:'Not valid JSON.'}; }
+  if(!obj || typeof obj!=='object' || !Array.isArray(obj.stones) || !obj.counters){
+    return {ok:false, error:'Not a Tankebænken backup (missing stones/counters).'};
+  }
+  S = obj; save(false);
+  renderAll();
+  return {ok:true};
+}
+function exportBackup(){
+  const text = exportJSON();
+  S.backup.lastBackupAt = new Date().toISOString();
+  S.backup.entriesSince = 0;
+  save(false);
+  const fname = 'tankebaenken-backup-' + todayStr() + '.json';
+  try{
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[new File([text], fname, {type:'application/json'})]})){
+      navigator.share({files:[new File([text], fname, {type:'application/json'})], title:fname});
+      return;
+    }
+  }catch(e){}
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+  a.download = fname; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+}
+/* ---------- rendering ---------- */
+function renderHeader(){
+  const el = document.getElementById('weekstrip'); if(!el) return;
+  const w = weekStats();
+  el.innerHTML =
+    '<span>This week</span>' +
+    '<span>Bench <b class="'+(w.bench>0?'done':'')+'">'+(w.bench>0?'✓':'–')+'</b></span>' +
+    '<span>Reading <b class="'+(w.reading>=w.target?'done':'')+'">'+w.reading+'</b><span class="small"> / '+w.target+'–'+(w.target+1)+'</span></span>' +
+    ((S.backup.entriesSince||0) >= 10 ? '<span class="chip">backup due<span class="nagdot"></span></span>' : '');
+}
+
+function stoneCardHTML(st){
+  const stepsHTML = STEPS.map(k=>{
+    const v = st.steps[k];
+    if(!v) return '';
+    return '<div class="stepblock"><div class="cue">'+CUES[k].name+' — '+esc(CUES[k].cue)+'</div>' +
+           '<p>'+esc(v)+'</p></div>';
+  }).join('');
+  const spares = (st.spareIds||[]).map(id=>S.quarry.find(q=>q.id===id)).filter(Boolean);
+  const sparesHTML = spares.length
+    ? '<div class="section-title">Spare stones ('+spares.length+')</div>' +
+      spares.map(q=>'<div class="qitem"><div class="qtext">'+esc(q.text)+'</div></div>').join('')
+    : '';
+  const retHTML = (st.ret && (st.ret.queued || st.ret.returned))
+    ? '<div class="returnbox">' +
+        (st.ret.returned
+          ? '<b>Returned ✓</b> <span class="muted">'+esc(st.ret.date||'')+'</span>' +
+            (st.ret.note ? '<div class="rq">'+esc(st.ret.note)+'</div>' : '')
+          : '<b>Return queued:</b> <span class="rq">'+esc(st.ret.queued)+'</span> ' +
+            '<div style="margin-top:8px"><button class="btn small accent" data-return="'+st.id+'">Mark returned</button></div>') +
+      '</div>'
+    : '';
+  return '<div class="card" id="card-'+st.id+'">' +
+    '<div class="stone-head"><h3>'+esc(st.title)+'</h3>' +
+    '<span class="badge '+esc(st.verdict)+'">'+esc(st.verdict)+'</span></div>' +
+    '<div class="muted">'+esc(st.source||'')+' · '+fmtDate(st.createdAt)+
+      (st.sessionType?' · <span class="chip">'+esc(st.sessionType)+'</span>':'')+'</div>' +
+    (st.verdictNote ? '<p style="font-size:14px;margin:8px 0 0">'+esc(st.verdictNote)+'</p>' : '') +
+    retHTML +
+    '<details><summary>Bench notes</summary>' + stepsHTML +
+      (st.readingPath ? '<div class="section-title">Reading path</div><div class="muted" style="font-size:14px">'+esc(st.readingPath)+'</div>' : '') +
+      sparesHTML +
+    '</details>' +
+  '</div>';
+}
+
+function renderShelf(){
+  const el = document.getElementById('view-shelf'); if(!el) return;
+  const n = S.stones.length;
+  el.innerHTML =
+    '<div class="rowbtns">' +
+      '<button class="btn" id="btn-kickoff">Start bench session</button>' +
+      '<button class="btn secondary" id="btn-filecard">File stone card</button>' +
+    '</div>' +
+    '<div id="kickoff-box" class="card hidden">' +
+      '<h3>Session kickoff</h3><p class="muted small">Paste this into the Sparring Partner project, then think out loud.</p>' +
+      '<textarea class="copybox" id="kickoff-text" readonly></textarea>' +
+      '<div class="rowbtns" style="margin-top:8px"><button class="btn small" id="btn-kickoff-copy">Share / copy</button>' +
+      '<button class="btn small secondary" id="btn-kickoff-close">Close</button></div>' +
+    '</div>' +
+    '<div id="filecard-box" class="card hidden">' +
+      '<h3>File a stone card</h3><p class="muted small">Paste the STONE CARD v1 the session ended with. Spares land in the Quarry automatically.</p>' +
+      '<textarea class="copybox" id="filecard-text" placeholder="STONE CARD v1&#10;TITLE: ..."></textarea>' +
+      '<div class="rowbtns" style="margin-top:8px"><button class="btn small" id="btn-filecard-save">File it</button>' +
+      '<button class="btn small secondary" id="btn-filecard-template">Show format</button>' +
+      '<button class="btn small secondary" id="btn-filecard-close">Close</button></div>' +
+      '<p class="muted small hidden" id="filecard-err" style="color:var(--contradicts)"></p>' +
+    '</div>' +
+    '<div class="section-title">The shelf · '+n+' stone'+(n===1?'':'s')+'</div>' +
+    (n ? S.stones.map(stoneCardHTML).join('') :
+      '<div class="card muted">No stones yet. Start a bench session — or file a card from one.</div>');
+  bindShelf();
+}
+
+function bindShelf(){
+  const $ = id=>document.getElementById(id);
+  $('btn-kickoff').onclick = ()=>{
+    $('kickoff-box').classList.remove('hidden');
+    $('filecard-box').classList.add('hidden');
+    $('kickoff-text').value = buildKickoff();
+  };
+  $('btn-kickoff-copy').onclick = ()=>copyText($('kickoff-text').value);
+  $('btn-kickoff-close').onclick = ()=>$('kickoff-box').classList.add('hidden');
+  $('btn-filecard').onclick = ()=>{
+    $('filecard-box').classList.remove('hidden');
+    $('kickoff-box').classList.add('hidden');
+  };
+  $('btn-filecard-template').onclick = ()=>{ $('filecard-text').value = stoneCardTemplate(); };
+  $('btn-filecard-close').onclick = ()=>$('filecard-box').classList.add('hidden');
+  $('btn-filecard-save').onclick = ()=>{
+    const res = fileStoneCard($('filecard-text').value);
+    if(!res.ok){
+      const err = $('filecard-err'); err.textContent = res.error; err.classList.remove('hidden');
+      return;
+    }
+    renderAll();
+    toast('Stone #'+S.stones.length+' shelved');
+    const card = document.getElementById('card-'+res.stone.id);
+    if(card) card.classList.add('flash');
+  };
+  document.querySelectorAll('[data-return]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const note = prompt('What happened when you took it back?') || '';
+      markReturned(btn.getAttribute('data-return'), note);
+      renderAll();
+      toast('Return logged — the loop closed');
+    };
+  });
+}
+
+function renderQuarry(){
+  const el = document.getElementById('view-quarry'); if(!el) return;
+  const open = S.quarry.filter(q=>q.status==='open');
+  const benched = S.quarry.filter(q=>q.status==='benched' || q.benchedAsStoneId);
+  const dropped = S.quarry.filter(q=>q.status==='dropped');
+  const item = q=>{
+    const parent = q.parentStoneId ? S.stones.find(s=>s.id===q.parentStoneId) : null;
+    return '<div class="qitem"><div class="qtext">'+esc(q.text)+
+      '<div class="tagline">'+esc(q.source||'')+(parent?' · from “'+esc(parent.title.slice(0,44))+'…”':'')+' · '+fmtDate(q.createdAt)+'</div></div>'+
+      '<button class="btn small secondary" data-drop="'+q.id+'">'+(q.status==='dropped'?'restore':'drop')+'</button></div>';
+  };
+  el.innerHTML =
+    '<div class="card">' +
+      '<h3>Capture</h3><p class="muted small">Ten seconds, no ceremony. Ideas from conversations, podcasts, reading, anywhere.</p>' +
+      '<textarea id="q-text" placeholder="The idea, roughly stated…" style="min-height:64px"></textarea>' +
+      '<label for="q-source">Source (optional)</label>' +
+      '<input type="text" id="q-source" placeholder="who / where">' +
+      '<div class="rowbtns" style="margin-top:10px"><button class="btn accent" id="q-add">Capture</button></div>' +
+    '</div>' +
+    '<div class="section-title">Open · '+open.length+'</div>' +
+    '<div class="card">'+(open.length?open.map(item).join(''):'<div class="muted">Quarry\'s empty. That\'s allowed.</div>')+'</div>' +
+    (dropped.length? '<details><summary>Dropped · '+dropped.length+'</summary><div class="card">'+dropped.map(item).join('')+'</div></details>':'');
+  document.getElementById('q-add').onclick = ()=>{
+    const t = document.getElementById('q-text');
+    const s = document.getElementById('q-source');
+    const q = addQuarry(t.value, s.value);
+    if(!q){ toast('Write the idea first'); return; }
+    renderQuarry(); toast('Captured');
+  };
+  document.querySelectorAll('[data-drop]').forEach(btn=>{
+    btn.onclick = ()=>{ dropQuarry(btn.getAttribute('data-drop')); renderQuarry(); };
+  });
+}
+
+function renderReading(){
+  const el = document.getElementById('view-reading'); if(!el) return;
+  const thinking = S.books.filter(b=>b.kind==='thinking' && b.status!=='done');
+  const lastBook = S.settings.lastBookId && thinking.find(b=>b.id===S.settings.lastBookId);
+  const opts = thinking.map(b=>'<option value="'+b.id+'"'+((lastBook&&b.id===lastBook.id)?' selected':'')+'>'+esc(b.title)+'</option>').join('');
+  const groups = [
+    ['Reading now', S.books.filter(b=>b.status==='reading')],
+    ['On the shelf', S.books.filter(b=>b.status==='shelf')],
+    ['Done', S.books.filter(b=>b.status==='done')]
+  ];
+  const bookRow = b=>{
+    const earned = b.earnedBy ? S.stones.find(s=>s.id===b.earnedBy) : null;
+    return '<div class="qitem"><div class="qtext"><b>'+esc(b.title)+'</b>'+(b.author?' — '+esc(b.author):'')+
+      '<div class="tagline">'+(b.kind==='easy'?'easy / uncoupling':'thinking')+(earned?' · earned by “'+esc(earned.title.slice(0,36))+'…”':'')+'</div></div>'+
+      '<select data-bookstatus="'+b.id+'" style="width:auto">'+
+        ['shelf','reading','done'].map(s=>'<option value="'+s+'"'+(b.status===s?' selected':'')+'>'+s+'</option>').join('')+
+      '</select></div>';
+  };
+  el.innerHTML =
+    '<div class="card">' +
+      '<h3>Log thinking-reading</h3>' +
+      '<p class="muted small">Two taps if nothing changed. Easy/fiction reading never needs logging — that\'s the law.</p>' +
+      (thinking.length ?
+        '<label for="r-book">Book</label><select id="r-book">'+opts+'</select>' +
+        '<label>Minutes</label>' +
+        '<div class="stepper"><button id="r-minus">−</button><div class="val" id="r-min">'+ (S.settings.lastMinutes||25) +'</div><button id="r-plus">+</button></div>' +
+        '<div class="rowbtns" style="margin-top:12px"><button class="btn accent" id="r-log">Log session</button></div>'
+        : '<p class="muted">Register a thinking book below first.</p>') +
+    '</div>' +
+    '<div class="card">' +
+      '<h3>Register a book</h3>' +
+      '<input type="text" id="b-title" placeholder="Title">' +
+      '<label for="b-author">Author (optional)</label><input type="text" id="b-author">' +
+      '<label>Kind</label><select id="b-kind"><option value="thinking">thinking (logs, feeds the bench)</option><option value="easy">easy / uncoupling (never logged)</option></select>' +
+      '<div class="rowbtns" style="margin-top:10px"><button class="btn" id="b-add">Add to library</button></div>' +
+    '</div>' +
+    groups.map(([t,list])=> list.length ?
+      '<div class="section-title">'+t+' · '+list.length+'</div><div class="card booklist">'+list.map(bookRow).join('')+'</div>' : '').join('') +
+    (S.readingLog.length ?
+      '<details><summary>Reading log · '+S.readingLog.length+'</summary><div class="card">'+
+      S.readingLog.slice(0,30).map(r=>{
+        const b=S.books.find(x=>x.id===r.bookId);
+        return '<div class="qitem"><div class="qtext">'+esc(b?b.title:'?')+'<div class="tagline">'+esc(r.date)+' · '+r.minutes+' min</div></div></div>';
+      }).join('')+'</div></details>' : '');
+  const $ = id=>document.getElementById(id);
+  if($('r-log')){
+    let mins = S.settings.lastMinutes||25;
+    $('r-minus').onclick = ()=>{ mins=Math.max(5,mins-5); $('r-min').textContent=mins; };
+    $('r-plus').onclick = ()=>{ mins=Math.min(180,mins+5); $('r-min').textContent=mins; };
+    $('r-log').onclick = ()=>{
+      const r = logReading($('r-book').value, mins);
+      if(r){ renderAll(); toast('Reading logged'); }
+    };
+  }
+  $('b-add').onclick = ()=>{
+    const b = addBook($('b-title').value, $('b-author').value, $('b-kind').value);
+    if(!b){ toast('Title first'); return; }
+    renderReading(); toast('On the library shelf');
+  };
+  document.querySelectorAll('[data-bookstatus]').forEach(sel=>{
+    sel.onchange = ()=>{ setBookStatus(sel.getAttribute('data-bookstatus'), sel.value); renderReading(); };
+  });
+}
+
+function renderSettings(){
+  const el = document.getElementById('view-settings'); if(!el) return;
+  el.innerHTML =
+    '<div class="card"><h3>Season</h3>' +
+      '<label for="s-theme">Current theme (curated in conversation, recorded here)</label>' +
+      '<input type="text" id="s-theme" value="'+esc(S.settings.theme||'')+'" placeholder="e.g. Performance & social roles">' +
+      '<label>Weekly reading target</label>' +
+      '<div class="stepper"><button id="s-minus">−</button><div class="val" id="s-target">'+S.settings.weeklyReadingTarget+'</div><button id="s-plus">+</button></div>' +
+      '<div class="rowbtns" style="margin-top:12px"><button class="btn" id="s-save">Save</button></div>' +
+    '</div>' +
+    '<div class="card"><h3>Backup</h3>' +
+      '<p class="muted small">'+(S.backup.lastBackupAt?('Last backup: '+fmtDate(S.backup.lastBackupAt)+' · '):'Never backed up · ')+(S.backup.entriesSince||0)+' entries since.</p>' +
+      '<div class="rowbtns"><button class="btn" id="s-backup">Export backup</button>' +
+      '<button class="btn secondary" id="s-import">Import backup</button></div>' +
+      '<textarea id="s-import-text" class="copybox hidden" placeholder="Paste backup JSON here"></textarea>' +
+      '<div class="rowbtns hidden" id="s-import-row" style="margin-top:8px"><button class="btn small" id="s-import-go">Import (replaces everything)</button></div>' +
+      '<p class="muted small hidden" id="s-import-err" style="color:var(--contradicts)"></p>' +
+    '</div>' +
+    '<div class="card"><h3>About</h3><p class="muted small">Tankebænken v'+APP_VERSION+' · Strip · Dig · Break · Follow · Place<br>' +
+    'Vetoes: never boring · no notes graveyard · no guilt machine · no metrics game.</p></div>';
+  const $ = id=>document.getElementById(id);
+  let target = S.settings.weeklyReadingTarget;
+  $('s-minus').onclick = ()=>{ target=Math.max(1,target-1); $('s-target').textContent=target; };
+  $('s-plus').onclick = ()=>{ target=Math.min(7,target+1); $('s-target').textContent=target; };
+  $('s-save').onclick = ()=>{
+    S.settings.theme = $('s-theme').value.trim();
+    S.settings.weeklyReadingTarget = target;
+    save(false); renderAll(); toast('Saved');
+  };
+  $('s-backup').onclick = ()=>{ exportBackup(); renderSettings(); };
+  $('s-import').onclick = ()=>{
+    $('s-import-text').classList.toggle('hidden');
+    $('s-import-row').classList.toggle('hidden');
+  };
+  $('s-import-go').onclick = ()=>{
+    const res = importJSON($('s-import-text').value);
+    if(!res.ok){ const e=$('s-import-err'); e.textContent=res.error; e.classList.remove('hidden'); return; }
+    toast('Backup imported');
+  };
+}
+
+/* ---------- navigation ---------- */
+const VIEWS = ['shelf','quarry','reading'];
+let currentView = 'shelf';
+function show(view){
+  currentView = view;
+  for(const v of [...VIEWS,'settings']){
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
+    const tab = document.getElementById('tab-'+v);
+    if(tab) tab.classList.toggle('active', v===view);
+  }
+}
+function renderAll(){
+  renderHeader(); renderShelf(); renderQuarry(); renderReading(); renderSettings();
+  show(currentView);
+}
+
+/* ---------- boot ---------- */
+function boot(){
+  load();
+  renderAll();
+  for(const v of VIEWS){
+    document.getElementById('tab-'+v).onclick = ()=>show(v);
+  }
+  document.getElementById('btn-settings').onclick = ()=>show(currentView==='settings'?'shelf':'settings');
+  if(navigator.storage && navigator.storage.persist){
+    navigator.storage.persist().catch(()=>{});
+  }
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+}
+if(typeof document !== 'undefined'){
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+}
+
+/* ---------- test hook ---------- */
+if(typeof window !== 'undefined'){
+  window.TB = {
+    get state(){ return S; },
+    APP_VERSION, LS_KEY,
+    freshState, seed, load, save, nid,
+    parseStoneCard, fileStoneCard, stoneCardTemplate, buildKickoff,
+    addQuarry, dropQuarry, addBook, setBookStatus, logReading, markReturned,
+    exportJSON, importJSON, weekStats, isoWeekKey, renderAll, show
+  };
+}
+</script>
+</body>
+</html>
