@@ -373,6 +373,17 @@ section('11. Sync against a fake GitHub');
   ok(r.ok === true, 'a stale-SHA rejection is refetched, retried, and then succeeds');
   ok(TB.parseJournalMd(gh.files.get(jpath).content).length === 3, 'nothing was lost to the retry');
 
+  /* an entry written by hand in an editor must not collide with app-allocated ids */
+  const handWritten = gh.files.get(jpath).content +
+    '\n## 2026-09-21 09:05 · j-0042\n\nSkrevet i VS Code, ikke i appen.\n';
+  gh.files.set(jpath, {content: handWritten, sha: 'shaHAND'});
+  r = await TB.syncNow({render:false});
+  ok(r.ok === true, 'sync picks up an entry written by hand in an editor');
+  ok(TB.state.journal.entries.some(e=>e.id==='j-0042'), 'the hand-written entry appears in the app');
+  ok(TB.state.counters.journal >= 42, 'the id counter catches up to the file, so ids cannot collide');
+  const fresh = TB.addJournal('Efter hånden.', '');
+  ok(fresh.id === 'j-0043', 'the next app entry continues from the hand-written one');
+
   gh.throwNext = true;
   const offline = TB.addJournal('Offline note.', '');
   r = await TB.syncNow({render:false});
@@ -385,7 +396,10 @@ section('11. Sync against a fake GitHub');
   r = await TB.syncNow({render:false});
   ok(r.ok === true, 'it pushes as soon as the network is back');
   ok(gh.files.get(jpath).content.indexOf('Offline note.') > -1, 'the offline entry reached the repo');
-  ok(TB.parseJournalMd(gh.files.get(jpath).content).length === 4, 'all four entries present, none duplicated');
+  const finalIds = TB.parseJournalMd(gh.files.get(jpath).content).map(e=>e.id);
+  ok(new Set(finalIds).size === finalIds.length, 'no entry is duplicated in the file');
+  ok(['j-0001','j-0002','j-0003','j-0042','j-0043'].every(i=>finalIds.includes(i)) && finalIds.includes(offline.id),
+     'every entry is present, whether written in the app or by hand in an editor');
   TB.setToken('');
 }
 

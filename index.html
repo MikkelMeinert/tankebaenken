@@ -150,7 +150,7 @@ summary{cursor:pointer; font-size:14px; color:var(--action); font-weight:600; us
 <script>
 /* Tankebænken v1 — single-file PWA. State: one localStorage key, stable ids. */
 'use strict';
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.1.2';
 const LS_KEY = 'tankebaenken-v1';
 
 /* ---------- focus cues (one line per step, expandable hint) ---------- */
@@ -599,6 +599,12 @@ async function syncNow(opts){
     }
     if(jfile.content !== null){
       const remoteEntries = parseJournalMd(jfile.content);
+      /* The file is the authority for ids too: an entry hand-written in an editor
+         must never collide with one the app allocates later. */
+      for(const e of remoteEntries){
+        const n = parseInt(String(e.id).slice(2), 10);
+        if(!isNaN(n) && n > S.counters.journal) S.counters.journal = n;
+      }
       const stillLocal = ((S.journal && S.journal.entries) || []).filter(e=>!e.synced);
       S.journal = {month: month, entries: stillLocal.concat(remoteEntries)
         .sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))};
