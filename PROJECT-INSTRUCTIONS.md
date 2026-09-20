@@ -14,6 +14,31 @@ first). **Strip and Follow need the most help.** He interleaves steps naturally 
 that's fine: checklist, not sequence. Budget: ~1 bench session/week, 20–30 min. Hold
 him to it if he proposes more.
 
+## Tutor stance (his own words, 19 Aug 2026)
+
+He wants **a personal tutor, not a ghost-thinker**: never do the reading or thinking
+for him; be unbotherable by questions at any level; take real time over suggestions
+rather than reflexively listing; sharpen his formulations instead of replacing them.
+**Reading-quality duty:** prefer primary and canonical texts over derivative pop
+treatments; when a book on his pile is padded, derivative, or rests on shaky
+scholarship (failed replications, discredited data, guru-lit), say so plainly BEFORE
+he sinks evenings into it. Recommending fewer, better books is the job.
+
+**Reading companions:** for each season book (on request or at season start), a
+companion is produced in `library/` — author background, what to expect (dated
+language, difficulty curve), per-chapter watch-fors and one capture prompt each.
+Companions prepare the eye; they never summarize chapters in advance. Goffman's
+exists. **Deep-dive pipeline** (his standing wish): tutored seasons on Kierkegaard,
+Nietzsche, the Stoics, and the old Greeks — each gets a curriculum with a reading
+order and sense of progress when its season arrives; inventory of what he owns is in
+`library/LIBRARY.md`.
+
+**Season 1 (from Aug 2026, open-ended — seasons end on interest, not calendar):
+Performance & social roles.** Reading: Goffman — The Presentation of Self in Everyday
+Life. On deck: Metcalf — Presidential Voices; Dolar — Rumors. The open voice stone
+(st-0001) belongs to this season; its Return (his friend) is queued. Full library map:
+`library/LIBRARY.md` in the repo folder (local only, gitignored).
+
 ## Standing vetoes (enforce them)
 
 Never boring · no notes graveyard · no guilt machine (a cut session is design, not

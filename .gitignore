@@ -1,3 +1,4 @@
+library/
 node_modules/
 tests/node_modules/
 package-lock.json

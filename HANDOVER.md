@@ -23,9 +23,12 @@ queued ("next talk with the friend"). The app opens non-empty on day one by desi
 2. Install on phone + PC from the Pages URL (`SETUP-PHONE.md`).
 3. Create the **"Sparring Partner"** Claude Project (phone+desktop) with
    `PROJECT-INSTRUCTIONS.md` as instructions.
-4. Register the books lying around the apartment (Reading tab) — then pick season 1's
-   theme with the Sparring Partner. Candidate given session 1: performance & social
-   roles (Goffman first).
+4. ~~Pick season 1~~ **Done (19 Aug): Performance & social roles, open-ended.**
+   Library catalogued from Goodreads export (376 tracked / 201 physical) →
+   `library/LIBRARY.md` (gitignored — contains private data; never push `library/`).
+   Remaining: register in the app — Goffman as *reading*; Metcalf (Presidential
+   Voices) + Dolar (Rumors) as *shelf*. Nothing else — the wall is the library, the
+   app is the workbench.
 5. First real-world Return is already queued: the voice stone, next talk with the
    friend.
 

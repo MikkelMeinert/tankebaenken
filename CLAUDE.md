@@ -132,6 +132,21 @@ stones, and log reading — each touch in seconds.
   evidence). Scaffolding budget goes to Strip and Follow.
 - **2026-08-19** — Reading never requires output; fiction never logged. Theme/season
   curation lives in conversation, not code.
+- **2026-08-19** — Season 1 chosen: **Performance & social roles** (Goffman reading;
+  Metcalf, Dolar on deck), open-ended by his explicit wish — seasons end on interest,
+  not calendar. Library mapped in `library/LIBRARY.md` (gitignored — private data).
+- **2026-08-19** — **Reading companions** established as a tutor deliverable: per
+  season book, in `library/`, prepare-the-eye format (background, what to expect,
+  per-chapter watch-fors + one capture prompt) — never chapter summaries. First:
+  `library/goffman-companion.md`.
+- **2026-08-19** — **Deep-dive pipeline** recorded (his wish, with owned-book
+  inventory in LIBRARY.md): Kierkegaard, Nietzsche, Stoics, old Greeks — future
+  seasons, each with a curriculum and progress structure. Build at season start, not
+  before.
+- **2026-08-19** — Claude-role framing refined by Mikkel: **personal tutor** — never
+  does the work for him, unbotherable by questions, takes time over suggestions,
+  sharpens his thinking, gives expert reading advice, and actively steers him away
+  from poor-quality writing (derivative pop, failed-replication science, padded books).
 
 ## §8 Risks
 

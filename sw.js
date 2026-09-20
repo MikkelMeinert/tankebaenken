@@ -1,6 +1,6 @@
 /* Tankebænken service worker.
    Rule from the fitness system, kept as law: bump CACHE on EVERY deploy. */
-const CACHE = 'tankebaenken-1.0.0';
+const CACHE = 'tankebaenken-1.1.0';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

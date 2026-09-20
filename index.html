@@ -134,6 +134,7 @@ summary{cursor:pointer; font-size:14px; color:var(--action); font-weight:600; us
   <section id="view-shelf"></section>
   <section id="view-quarry" class="hidden"></section>
   <section id="view-reading" class="hidden"></section>
+  <section id="view-journal" class="hidden"></section>
   <section id="view-settings" class="hidden"></section>
 </main>
 
@@ -141,6 +142,7 @@ summary{cursor:pointer; font-size:14px; color:var(--action); font-weight:600; us
   <button id="tab-shelf" class="active">Shelf</button>
   <button id="tab-quarry">Quarry</button>
   <button id="tab-reading">Reading</button>
+  <button id="tab-journal">Journal</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -148,7 +150,7 @@ summary{cursor:pointer; font-size:14px; color:var(--action); font-weight:600; us
 <script>
 /* Tankebænken v1 — single-file PWA. State: one localStorage key, stable ids. */
 'use strict';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const LS_KEY = 'tankebaenken-v1';
 
 /* ---------- focus cues (one line per step, expandable hint) ---------- */
@@ -176,14 +178,16 @@ function freshState(){
   return {
     version: 1, appVersion: APP_VERSION, createdAt: now,
     stones: [], quarry: [], books: [], readingLog: [],
-    counters: {stone:0, quarry:0, book:0, reading:0},
+    journal: {month: monthKey(), entries: []},
+    counters: {stone:0, quarry:0, book:0, reading:0, journal:0},
+    sync: {lastPushAt: null, lastPullAt: null, pending: false},
     settings: {weeklyReadingTarget: 2, theme: '', lastMinutes: 25, lastBookId: null},
     backup: {lastBackupAt: null, entriesSince: 0}
   };
 }
 function nid(kind){
   S.counters[kind] += 1;
-  const p = {stone:'st', quarry:'q', book:'b', reading:'r'}[kind];
+  const p = {stone:'st', quarry:'q', book:'b', reading:'r', journal:'j'}[kind];
   return p + '-' + String(S.counters[kind]).padStart(4,'0');
 }
 
@@ -234,17 +238,31 @@ function load(){
   if(!S || typeof S !== 'object' || !Array.isArray(S.stones)){
     S = freshState(); seed(); save(false);
   }
+  migrate();
+}
+/* Additive only: an old install or an old backup gains journal + sync, loses nothing. */
+function migrate(){
+  if(!S.counters) S.counters = {stone:0, quarry:0, book:0, reading:0, journal:0};
+  if(typeof S.counters.journal !== 'number') S.counters.journal = 0;
+  if(!S.journal || !Array.isArray(S.journal.entries)) S.journal = {month: monthKey(), entries: []};
+  if(!S.sync) S.sync = {lastPushAt:null, lastPullAt:null, pending:false};
 }
 function save(countEntry){
   if(countEntry !== false){ S.backup.entriesSince = (S.backup.entriesSince||0)+1; }
+  if(S.sync) S.sync.pending = true;
   try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
   renderHeader();
+  schedulePush();
 }
 
 /* ---------- helpers ---------- */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function monthKey(d){ const x = d||new Date(); return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0'); }
+function dayStr(iso){ const d=new Date(iso); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function hhmm(iso){ const d=new Date(iso); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function touch(o){ if(o) o.updatedAt = new Date().toISOString(); return o; }
 function isoWeekKey(d){
   const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const day = dt.getUTCDay() || 7;
@@ -378,40 +396,234 @@ function buildKickoff(){
 function addQuarry(text, source){
   text = (text||'').trim();
   if(!text) return null;
-  const q = {id: nid('quarry'), createdAt: new Date().toISOString(), text,
+  const now = new Date().toISOString();
+  const q = {id: nid('quarry'), createdAt: now, updatedAt: now, text,
              source:(source||'').trim(), parentStoneId:null, status:'open', benchedAsStoneId:null};
   S.quarry.unshift(q); save();
   return q;
 }
 function dropQuarry(id){
   const q = S.quarry.find(x=>x.id===id); if(!q) return;
-  q.status = (q.status==='dropped') ? 'open' : 'dropped'; save();
+  q.status = (q.status==='dropped') ? 'open' : 'dropped'; touch(q); save();
 }
 function addBook(title, author, kind){
   title=(title||'').trim(); if(!title) return null;
   const b = {id: nid('book'), title, author:(author||'').trim(),
-             kind: kind==='easy'?'easy':'thinking', status:'shelf', earnedBy:null, addedAt:new Date().toISOString()};
+             kind: kind==='easy'?'easy':'thinking', status:'shelf', earnedBy:null,
+             addedAt:new Date().toISOString(), updatedAt:new Date().toISOString()};
   S.books.unshift(b); save();
   return b;
 }
 function setBookStatus(id, status){
   const b = S.books.find(x=>x.id===id); if(!b) return;
-  b.status = status; save();
+  b.status = status; touch(b); save();
 }
 function logReading(bookId, minutes, date){
   const b = S.books.find(x=>x.id===bookId); if(!b) return null;
-  const r = {id: nid('reading'), date: date||todayStr(), bookId, minutes: Math.max(1, minutes|0)};
+  const r = {id: nid('reading'), date: date||todayStr(), bookId, minutes: Math.max(1, minutes|0),
+             createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()};
   S.readingLog.unshift(r);
   S.settings.lastMinutes = r.minutes; S.settings.lastBookId = bookId;
   if(b.status==='shelf') b.status = 'reading';
-  save();
+  touch(b); save();
   return r;
 }
 function markReturned(stoneId, note){
   const st = S.stones.find(x=>x.id===stoneId); if(!st) return null;
   st.ret.returned = true; st.ret.note = (note||'').trim(); st.ret.date = todayStr();
-  save();
+  touch(st); save();
   return st;
+}
+
+/* ---------- journal: prose lives in markdown; the app only ever appends ---------- */
+function addJournal(text, source){
+  const t = String(text||'').trim(); if(!t) return null;
+  if(!S.journal || !Array.isArray(S.journal.entries)) S.journal = {month: monthKey(), entries: []};
+  const e = {id: nid('journal'), createdAt: new Date().toISOString(), text: t,
+             source: String(source||'').trim(), synced: false};
+  S.journal.entries.unshift(e);
+  save();
+  return e;
+}
+function journalBlock(e){
+  return '## ' + dayStr(e.createdAt) + ' ' + hhmm(e.createdAt) + ' · ' + e.id + '\n\n' +
+         (e.source ? '*' + e.source + '*\n\n' : '') + String(e.text).trim() + '\n';
+}
+function parseJournalMd(md){
+  const out = []; let cur = null;
+  const close = ()=>{ if(cur){ cur.text = cur.text.join('\n').trim(); delete cur._src; out.push(cur); cur = null; } };
+  for(const line of String(md||'').split('\n')){
+    const h = line.match(/^##\s+(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})\s+·\s+(j-\d{4})\s*$/);
+    if(h){
+      close();
+      cur = {id: h[4], createdAt: new Date(h[1]+'T'+h[2]+':'+h[3]+':00').toISOString(),
+             text: [], source: '', synced: true, _src: false};
+      continue;
+    }
+    if(!cur) continue;
+    const m = line.match(/^\*(.+)\*\s*$/);
+    if(m && !cur._src && cur.text.join('').trim() === ''){ cur.source = m[1]; cur._src = true; continue; }
+    cur.text.push(line);
+  }
+  close();
+  return out;
+}
+function journalUnsynced(){
+  return ((S.journal && S.journal.entries) || []).filter(e=>!e.synced).slice().reverse();
+}
+function isPromoted(entryId){ return S.quarry.some(q=>q.fromJournal===entryId); }
+function promoteJournal(entryId){
+  const e = ((S.journal && S.journal.entries) || []).find(x=>x.id===entryId);
+  if(!e || isPromoted(entryId)) return null;
+  const now = new Date().toISOString();
+  const q = {id: nid('quarry'), createdAt: now, updatedAt: now, text: e.text,
+             source: e.source || ('Journal · ' + dayStr(e.createdAt)),
+             parentStoneId: null, fromJournal: entryId, status: 'open', benchedAsStoneId: null};
+  S.quarry.unshift(q); save();
+  return q;
+}
+
+/* ---------- sync: a private GitHub repo as the store ---------- */
+const GH_OWNER = 'MikkelMeinert';
+const GH_REPO  = 'tankebaenken-data';
+const STATE_PATH = 'state.json';
+/* The token lives OUTSIDE S, in its own key. That is why it can never reach the export. */
+const TOKEN_KEY = 'tankebaenken-gh-token';
+let _fetch = (typeof fetch === 'function') ? fetch.bind(globalThis) : null;
+let _pushTimer = null, _syncing = false;
+
+function getToken(){ try{ return localStorage.getItem(TOKEN_KEY) || ''; }catch(e){ return ''; } }
+function setToken(t){ try{ t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }catch(e){} }
+function syncReady(){ return !!(_fetch && getToken()); }
+
+function b64encode(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = ''; for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64decode(b64){
+  const bin = atob(String(b64||'').replace(/\s/g,''));
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function ghUrl(path){ return 'https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path; }
+function ghHeaders(){
+  return {'Authorization':'Bearer '+getToken(), 'Accept':'application/vnd.github+json',
+          'X-GitHub-Api-Version':'2022-11-28'};
+}
+async function ghGet(path){
+  const res = await _fetch(ghUrl(path), {headers: ghHeaders()});
+  if(res.status === 404) return {content:null, sha:null};
+  if(!res.ok) throw new Error('GET '+path+' -> '+res.status);
+  const j = await res.json();
+  return {content: b64decode(j.content||''), sha: j.sha};
+}
+async function ghPut(path, content, sha, message){
+  const body = {message: message, content: b64encode(content)};
+  if(sha) body.sha = sha;
+  const res = await _fetch(ghUrl(path), {method:'PUT',
+    headers: Object.assign({'Content-Type':'application/json'}, ghHeaders()),
+    body: JSON.stringify(body)});
+  if(res.status === 409 || res.status === 422) return {stale:true};
+  if(!res.ok) throw new Error('PUT '+path+' -> '+res.status);
+  return {stale:false};
+}
+
+function stampOf(o){ return (o && (o.updatedAt || o.createdAt || o.addedAt || o.date)) || ''; }
+function mergeLists(local, remote){
+  const byId = new Map();
+  for(const it of (remote||[])) if(it && it.id) byId.set(it.id, it);
+  for(const it of (local||[])){
+    if(!it || !it.id) continue;
+    const r = byId.get(it.id);
+    if(!r || String(stampOf(it)) >= String(stampOf(r))) byId.set(it.id, it);
+  }
+  return Array.from(byId.values()).sort((a,b)=>{
+    const d = String(stampOf(b)).localeCompare(String(stampOf(a)));
+    return d !== 0 ? d : String(b.id).localeCompare(String(a.id));
+  });
+}
+function mergeState(local, remote){
+  if(!remote || typeof remote !== 'object') return local;
+  const out = Object.assign({}, local);
+  out.stones     = mergeLists(local.stones,     remote.stones);
+  out.quarry     = mergeLists(local.quarry,     remote.quarry);
+  out.books      = mergeLists(local.books,      remote.books);
+  out.readingLog = mergeLists(local.readingLog, remote.readingLog);
+  out.counters = {};
+  for(const k of ['stone','quarry','book','reading','journal']){
+    out.counters[k] = Math.max((local.counters && local.counters[k])||0,
+                               (remote.counters && remote.counters[k])||0);
+  }
+  out.settings = Object.assign({}, remote.settings||{}, local.settings||{});
+  return out;
+}
+/* what actually goes to state.json: no prose, no device-local sync bookkeeping */
+function stateForRemote(st){
+  const o = Object.assign({}, st);
+  delete o.journal; delete o.sync;
+  return o;
+}
+function appendEntries(body, entries){
+  let next = (body === null || body === undefined ? '# ' + monthKey() + '\n' : String(body));
+  next = next.replace(/\s*$/, '') + '\n\n' + entries.map(journalBlock).join('\n');
+  return next.endsWith('\n') ? next : next + '\n';
+}
+
+async function syncNow(opts){
+  if(_syncing) return {ok:false, reason:'busy'};
+  if(!syncReady()) return {ok:false, reason:'no token'};
+  _syncing = true;
+  try{
+    const month = monthKey();
+    const jpath = 'journal/' + month + '.md';
+    const pending = journalUnsynced();
+    let jfile = await ghGet(jpath);
+    if(pending.length){
+      let res = await ghPut(jpath, appendEntries(jfile.content, pending), jfile.sha,
+                            'journal: ' + pending.length + (pending.length===1?' entry':' entries'));
+      if(res.stale){
+        jfile = await ghGet(jpath);
+        res = await ghPut(jpath, appendEntries(jfile.content, pending), jfile.sha, 'journal: retry');
+      }
+      if(res.stale) return {ok:false, reason:'conflict'};
+      for(const e of pending) e.synced = true;
+      jfile = await ghGet(jpath);
+    }
+    if(jfile.content !== null){
+      const remoteEntries = parseJournalMd(jfile.content);
+      const stillLocal = ((S.journal && S.journal.entries) || []).filter(e=>!e.synced);
+      S.journal = {month: month, entries: stillLocal.concat(remoteEntries)
+        .sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))};
+    }
+    let sfile = await ghGet(STATE_PATH);
+    let remote = null;
+    if(sfile.content){ try{ remote = JSON.parse(sfile.content); }catch(e){ remote = null; } }
+    Object.assign(S, mergeState(S, remote));
+    let res2 = await ghPut(STATE_PATH, JSON.stringify(stateForRemote(S), null, 2), sfile.sha, 'state');
+    if(res2.stale){
+      sfile = await ghGet(STATE_PATH);
+      let r2 = null; if(sfile.content){ try{ r2 = JSON.parse(sfile.content); }catch(e){} }
+      Object.assign(S, mergeState(S, r2));
+      res2 = await ghPut(STATE_PATH, JSON.stringify(stateForRemote(S), null, 2), sfile.sha, 'state (retry)');
+    }
+    if(res2.stale) return {ok:false, reason:'conflict'};
+    const now = new Date().toISOString();
+    S.sync.lastPushAt = now; S.sync.lastPullAt = now; S.sync.pending = false;
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+    if(!opts || opts.render !== false) renderAll();
+    return {ok:true};
+  }catch(e){
+    return {ok:false, reason: String((e && e.message) || e)};
+  }finally{
+    _syncing = false;
+  }
+}
+function schedulePush(){
+  if(!syncReady() || typeof setTimeout !== 'function') return;
+  if(_pushTimer) clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(()=>{ _pushTimer = null; syncNow({render:false}).then(()=>renderHeader()); }, 3000);
 }
 
 /* ---------- export / import ---------- */
@@ -451,6 +663,7 @@ function renderHeader(){
     '<span>This week</span>' +
     '<span>Bench <b class="'+(w.bench>0?'done':'')+'">'+(w.bench>0?'✓':'–')+'</b></span>' +
     '<span>Reading <b class="'+(w.reading>=w.target?'done':'')+'">'+w.reading+'</b><span class="small"> / '+w.target+'–'+(w.target+1)+'</span></span>' +
+    (getToken() && S.sync && S.sync.pending ? '<span class="chip">unsynced<span class="nagdot"></span></span>' : '') +
     ((S.backup.entriesSince||0) >= 10 ? '<span class="chip">backup due<span class="nagdot"></span></span>' : '');
 }
 
@@ -651,6 +864,37 @@ function renderReading(){
   });
 }
 
+function renderJournal(){
+  const el = document.getElementById('view-journal'); if(!el) return;
+  const entries = (S.journal && S.journal.entries) || [];
+  const item = e=>
+    '<div class="qitem"><div class="qtext">' + esc(e.text).replace(/\n/g,'<br>') +
+      '<div class="tagline">' + fmtDate(e.createdAt) + ' · ' + hhmm(e.createdAt) +
+      (e.source ? ' · ' + esc(e.source) : '') + ' · ' + e.id +
+      (e.synced ? '' : ' · unsynced') + '</div></div>' +
+      (isPromoted(e.id) ? '<span class="badge">in quarry</span>'
+                        : '<button class="btn small secondary" data-promote="'+e.id+'">→ quarry</button>') +
+    '</div>';
+  el.innerHTML =
+    '<div class="card">' +
+      '<h3>Write</h3><p class="muted small">Days, work, people, ideas — all of it, one place. No template, no daily obligation. An entry happens when there is something.</p>' +
+      '<textarea id="j-text" placeholder="…" style="min-height:120px"></textarea>' +
+      '<label for="j-source">Where (optional)</label>' +
+      '<input type="text" id="j-source" placeholder="on the train / in bed">' +
+      '<div class="rowbtns" style="margin-top:10px"><button class="btn accent" id="j-add">Save entry</button></div>' +
+    '</div>' +
+    '<div class="section-title">' + esc((S.journal && S.journal.month) || monthKey()) + ' · ' + entries.length + '</div>' +
+    '<div class="card">' + (entries.length ? entries.map(item).join('') : '<div class="muted">Nothing this month yet.</div>') + '</div>';
+  document.getElementById('j-add').onclick = ()=>{
+    const t = document.getElementById('j-text'), src = document.getElementById('j-source');
+    if(!addJournal(t.value, src.value)){ toast('Write something first'); return; }
+    t.value = ''; renderJournal(); toast('Saved');
+  };
+  document.querySelectorAll('[data-promote]').forEach(btn=>{
+    btn.onclick = ()=>{ promoteJournal(btn.getAttribute('data-promote')); renderJournal(); renderQuarry(); toast('In the quarry'); };
+  });
+}
+
 function renderSettings(){
   const el = document.getElementById('view-settings'); if(!el) return;
   el.innerHTML =
@@ -669,6 +913,16 @@ function renderSettings(){
       '<div class="rowbtns hidden" id="s-import-row" style="margin-top:8px"><button class="btn small" id="s-import-go">Import (replaces everything)</button></div>' +
       '<p class="muted small hidden" id="s-import-err" style="color:var(--contradicts)"></p>' +
     '</div>' +
+    '<div class="card"><h3>Sync</h3>' +
+      '<p class="muted small">One store, both devices: the private repo <b>'+GH_REPO+'</b>. A write always lands on this device first — sync is only what carries it.</p>' +
+      '<label for="s-token">GitHub token (this device only — never leaves it, never exported)</label>' +
+      '<input type="password" id="s-token" placeholder="'+(getToken()?'•••••• saved on this device':'github_pat_…')+'">' +
+      '<div class="rowbtns" style="margin-top:10px"><button class="btn" id="s-token-save">Save token</button>' +
+      '<button class="btn secondary" id="s-token-clear">Forget</button>' +
+      '<button class="btn accent" id="s-sync">Sync now</button></div>' +
+      '<p class="muted small" id="s-sync-state">' + (!getToken() ? 'No token on this device yet.' :
+        ((S.sync && S.sync.lastPushAt) ? ('Last sync: '+fmtDate(S.sync.lastPushAt)+((S.sync&&S.sync.pending)?' · changes pending':'')) : 'Never synced')) + '</p>' +
+    '</div>' +
     '<div class="card"><h3>About</h3><p class="muted small">Tankebænken v'+APP_VERSION+' · Strip · Dig · Break · Follow · Place<br>' +
     'Vetoes: never boring · no notes graveyard · no guilt machine · no metrics game.</p></div>';
   const $ = id=>document.getElementById(id);
@@ -679,6 +933,18 @@ function renderSettings(){
     S.settings.theme = $('s-theme').value.trim();
     S.settings.weeklyReadingTarget = target;
     save(false); renderAll(); toast('Saved');
+  };
+  $('s-token-save').onclick = ()=>{
+    const v = $('s-token').value.trim();
+    if(!v){ toast('Paste the token first'); return; }
+    setToken(v); $('s-token').value = ''; renderSettings(); renderHeader(); toast('Token saved');
+  };
+  $('s-token-clear').onclick = ()=>{ setToken(''); renderSettings(); renderHeader(); toast('Token forgotten'); };
+  $('s-sync').onclick = async ()=>{
+    const st = $('s-sync-state'); st.textContent = 'Syncing…';
+    const r = await syncNow({render:false});
+    st.textContent = r.ok ? 'Synced just now' : ('Sync failed: ' + r.reason);
+    renderHeader();
   };
   $('s-backup').onclick = ()=>{ exportBackup(); renderSettings(); };
   $('s-import').onclick = ()=>{
@@ -693,7 +959,7 @@ function renderSettings(){
 }
 
 /* ---------- navigation ---------- */
-const VIEWS = ['shelf','quarry','reading'];
+const VIEWS = ['shelf','quarry','reading','journal'];
 let currentView = 'shelf';
 function show(view){
   currentView = view;
@@ -704,7 +970,7 @@ function show(view){
   }
 }
 function renderAll(){
-  renderHeader(); renderShelf(); renderQuarry(); renderReading(); renderSettings();
+  renderHeader(); renderShelf(); renderQuarry(); renderReading(); renderJournal(); renderSettings();
   show(currentView);
 }
 
@@ -716,6 +982,10 @@ function boot(){
     document.getElementById('tab-'+v).onclick = ()=>show(v);
   }
   document.getElementById('btn-settings').onclick = ()=>show(currentView==='settings'?'shelf':'settings');
+  if(syncReady()) syncNow({render:true});
+  if(typeof window !== 'undefined' && window.addEventListener){
+    window.addEventListener('online', ()=>schedulePush());
+  }
   if(navigator.storage && navigator.storage.persist){
     navigator.storage.persist().catch(()=>{});
   }
@@ -736,7 +1006,11 @@ if(typeof window !== 'undefined'){
     freshState, seed, load, save, nid,
     parseStoneCard, fileStoneCard, stoneCardTemplate, buildKickoff,
     addQuarry, dropQuarry, addBook, setBookStatus, logReading, markReturned,
-    exportJSON, importJSON, weekStats, isoWeekKey, renderAll, show
+    exportJSON, importJSON, weekStats, isoWeekKey, renderAll, show,
+    addJournal, promoteJournal, isPromoted, journalBlock, parseJournalMd, journalUnsynced,
+    appendEntries, mergeLists, mergeState, stateForRemote, stampOf, monthKey, migrate,
+    getToken, setToken, syncReady, syncNow, TOKEN_KEY, GH_REPO,
+    __setFetch(fn){ _fetch = fn; }
   };
 }
 </script>
