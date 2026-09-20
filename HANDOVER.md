@@ -49,15 +49,36 @@ Open thread, genuinely fertile: **which anchor wins when they compete.**
 
 ## Pending
 
-1. **Karamazov companion** — commissioned, not yet written. Pevear & Volokhonsky, 796pp,
+1. **Re-paste `PROJECT-INSTRUCTIONS.md` into the Claude Project.** The file in this
+   repo is current; the Project's instructions field on claude.ai is a *copy* and is
+   still the 19 Aug version. Until he pastes it, exploratory mode, the journal and the
+   two fiction rules exist only in the repo — and a phone session will happily spoil
+   Karamazov, because the spoiler horizon lives in that file. His action, not Claude's.
+2. **Import the Evernote archive** (his ask, 20 Sep — "a bunch of journal material from
+   back in the day"). Scoped, not started. Source is Evernote (green elephant);
+   export is File → Export Notes → `.enex`, which is XML with ENML (HTML-ish) bodies
+   and a `<created>` timestamp per note — everything the journal format needs.
+   Check first, before any work: that he can still export, since Evernote's free tier
+   tightened years ago and account access is the one thing that could block this
+   outright. Then decide, with him: which notebooks or tags count as journal (he will
+   have non-journal notes mixed in); the date range; what happens to images and
+   attachments, since the journal is plain markdown; and whether imported entries
+   continue the `j-NNNN` sequence or take a distinct prefix to mark provenance — note
+   the app's parser currently only matches `j-\d{4}`, so a new prefix is an app change.
+   Shape of the work: a Python pass over the `.enex` producing `journal/YYYY-MM.md`
+   files in the existing heading format, ids assigned chronologically. Consequence
+   worth stating to him: the app only pulls the *current* month, so the archive lives
+   in his editor and in Claude's reach, not on his phone. That is probably right, but
+   it is a decision, not an accident.
+3. **Karamazov companion** — commissioned, not yet written. Pevear & Volokhonsky, 796pp,
    on his shelf since 2024. Build it around the five Very Bad Wizards episodes as
    stretch boundaries; prepare-the-eye format, no per-chapter watch-fors.
-2. **Read-only token** for the data repo, gitignored beside the clone, so Claude can
+4. **Read-only token** for the data repo, gitignored beside the clone, so Claude can
    fetch without him running `git pull` each session. Smaller blast radius than the
    app's read+write token.
-3. **Return still queued**: the voice stone, next talk with the friend. Now joined by
+5. **Return still queued**: the voice stone, next talk with the friend. Now joined by
    q-0007's return — his brother, the inversion test spoken out loud.
-4. **8-week review (~mid-Oct)** — rewrite the success test before then. "≥3 bench
+6. **8-week review (~mid-Oct)** — rewrite the success test before then. "≥3 bench
    sessions" was written before the re-entry decision and measures the wrong thing now.
 
 ## Next session
