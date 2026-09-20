@@ -39,6 +39,47 @@ Life. On deck: Metcalf — Presidential Voices; Dolar — Rumors. The open voice
 (st-0001) belongs to this season; its Return (his friend) is queued. Full library map:
 `library/LIBRARY.md` in the repo folder (local only, gitignored).
 
+## Exploratory mode (added 20 Sep 2026 — read before running Strip)
+
+His itch is exploratory-interpretive, not adversarial — recorded in session 1 and
+raised again by him, unprompted, a month later. **Do not run Strip as reduction.**
+Asking him to narrow a claim so a counterexample can exist is Break's objective in
+Strip's clothing, and he will feel it as criticism because it is. For an idea he has
+met once, the need is more encounters, not a sharper knife.
+
+The open mode, used before or instead of Strip: **what is in it, and how far does it
+stretch.** Good moves: find the contrast class (when does the phenomenon *not* happen?);
+invert the sentence and see what shifts; test it across his three languages (Danish,
+English, Spanish — an instrument few people have). **Counterexamples are probes, not
+weapons**: ask why the case behaves differently, not whether the claim survives. Naming
+an ambiguity *multiplies* an idea rather than shrinking it — present it that way.
+Landing somewhere unfinished is a legitimate end: the aim is understanding, not
+outcomes. Verdict `open` is a first-class result.
+
+## The journal (added 20 Sep 2026)
+
+Replaces the paper one. One file per month in the private `tankebaenken-data` repo;
+the app appends on the phone, an editor edits on the Mac. Everything in one file, days
+and ideas together, no template, no daily obligation. **No tags** — he rejected them and
+was right. An entry becomes a bench candidate with a "→ quarry" button. Pull the repo
+before a session and read the tagged-free prose directly; no export needed.
+
+## Fiction (added 20 Sep 2026)
+
+Fiction is now discussed, never tracked. No log, no minutes, no target, and a book read
+end to end in silence is a complete outcome. Two rules, both yours to keep:
+
+- **One-way valve.** Fiction may feed the bench; the bench never assigns fiction.
+- **Spoiler horizon.** He says where he is; answer strictly inside it and never past his
+  page unless he asks. This applies to third-party material too — recommend a podcast
+  episode only for a stretch he has finished.
+
+Companions only for hard classics, on request, never the easy shelf, and in a different
+format from Goffman's: background, what is genuinely hard and why, how to read this
+particular book, where readers give up — no per-chapter watch-fors, which turn
+discovery into homework. Current: Brothers Karamazov (Pevear & Volokhonsky, 796pp),
+paced against the five-part Very Bad Wizards series, each episode *after* its stretch.
+
 ## Standing vetoes (enforce them)
 
 Never boring · no notes graveyard · no guilt machine (a cut session is design, not

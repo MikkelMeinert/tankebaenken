@@ -1,52 +1,71 @@
 # HANDOVER — Tankebænken
 
-State as of **19 August 2026** (kickoff session: interview → live bench session #1 →
-brief signed off → v1 built and tested). Read `CLAUDE.md` first — it is the source of
+State as of **20 September 2026** (second Cowork session: adoption review → stack
+rebuild → partial bench → canon updated). Read `CLAUDE.md` first — it is the source of
 truth; this file is only the moving state.
 
-## Where things stand
+## What the first month actually showed
 
-**Built and green (59/59 jsdom tests):** `index.html` (single-file PWA: Shelf /
-Quarry / Reading + settings, kickoff builder, STONE CARD v1 parser, backup
-export/import), `sw.js` (network-first HTML, cache-first assets, CACHE
-`tankebaenken-1.0.0`), manifest + icons, test suite in `tests/`.
+Read honestly from his backup, not from hope: **0 bench sessions**, **1 reading session**
+(25 min Goffman, 5 Sep), **3 captures** — 25 Aug on a boat in South Fyn, 26 Aug on an
+island, 5 Sep in bed — then fifteen quiet days. He is mid-transition (new flat, new
+rhythm), exactly the failure mode §1 predicts.
 
-**Seeded content (real, from the live session):** stone `st-0001` (the voice stone,
-verdict: split), 5 linked spare stones, Goffman + Austin on the book shelf, Return
-queued ("next talk with the friend"). The app opens non-empty on day one by design.
+The finding that mattered more than the counts: **every capture was made in unstructured
+time.** None at the desk, none inside a structured week. That contradicts §1's design
+target and is why the journal could not be a Mac-only folder. It also explains why both
+of his asks this session were *capture* surfaces — he was reaching for what fits his
+current capacity, and the right response was to make that explicit rather than let it
+drift. Hence the re-entry decision in §7: bench dormant by design, journal and reading
+carrying the practice.
 
-## Pending — Mikkel's checklist
+## Built and shipped this session
 
-1. Create GitHub repo `tankebaenken` (public, no README) under MikkelMeinert; push
-   these files; enable Pages (main / root). Exact commands in `README.md`. Known
-   flake: first Pages deploy can fail generically → empty commit, wait, retry.
-2. Install on phone + PC from the Pages URL (`SETUP-PHONE.md`).
-3. Create the **"Sparring Partner"** Claude Project (phone+desktop) with
-   `PROJECT-INSTRUCTIONS.md` as instructions.
-4. ~~Pick season 1~~ **Done (19 Aug): Performance & social roles, open-ended.**
-   Library catalogued from Goodreads export (376 tracked / 201 physical) →
-   `library/LIBRARY.md` (gitignored — contains private data; never push `library/`).
-   Remaining: register in the app — Goffman as *reading*; Metcalf (Presidential
-   Voices) + Dolar (Rumors) as *shelf*. Nothing else — the wall is the library, the
-   app is the workbench.
-5. First real-world Return is already queued: the voice stone, next talk with the
-   friend.
+**v1.1.1, live, 115/115 assertions green** (was 59).
 
-## Next Cowork session (~monthly, or on demand)
+- **Journal tab** — append-only prose, stable ids (`j-0001`) carried in the markdown
+  heading, "→ quarry" button in place of tag syntax.
+- **Sync** — private repo `tankebaenken-data` as the store. `state.json` merged per
+  entity id; `journal/YYYY-MM.md` appended to, never regenerated. Token in its own
+  localStorage key, outside `S`. Brief: `SYNC-DESIGN.md`.
+- **v1.1.1 hotfix** — the service worker was caching cross-origin GETs, so a 401 from a
+  bad token was replayed forever. Now same-origin only, and never caches a non-ok
+  response. The regression test was verified to fail against the old file.
+- **Verified end to end**: q-0006, q-0007 and q-0008 travelled phone → repo → Mac.
 
-Agenda: import his backup JSON → check adoption honestly against §5 of CLAUDE.md
-(sessions happened? stones shelved? returns closed? reading logged?) → fix frictions
-he reports → only then consider features. The 8-week review (~mid-October) decides:
-does the week strip survive (guilt check)? does meditation enter? does solo-bench mode
-need investment? **Growth only on demonstrated use — the v1→v2 law.**
+Both devices hold their own token. A `git pull` is currently needed before Claude can
+read the repo — see the open item below.
 
-Before ANY handover/deploy: `cd tests && npm install && node run-tests.js`, and bump
-`APP_VERSION` + sw `CACHE` together (the suite enforces the match). Once real data
-exists, test against an imported backup, not just the seed.
+## The bench, session 2 (partial, by design)
 
-## Open questions parked on purpose
+Stone **q-0007** (similarity asymmetry) — parked **open**, card filed. Strip produced a
+bare claim and a tested scope widening; then the form was dropped mid-session under the
+anti-death clause when Strip started optimising the claim for breakability. The
+exploratory mode that replaced it produced the actual yield: four candidate carriers of
+the ordering (lexicon, sentence structure, shared world-knowledge, speaking situation)
+and one case where two conflict and speaker-position wins. Five spare stones.
 
-Re-entry after life transitions (deferred by decision) · readiness-tap analog (no
-gating decision identified — skip) · prediction log (demoted; only revive on his
-explicit ask) · extending the voice stone's claim to written communication (spare
-stone, his call).
+Open thread, genuinely fertile: **which anchor wins when they compete.**
+
+## Pending
+
+1. **Karamazov companion** — commissioned, not yet written. Pevear & Volokhonsky, 796pp,
+   on his shelf since 2024. Build it around the five Very Bad Wizards episodes as
+   stretch boundaries; prepare-the-eye format, no per-chapter watch-fors.
+2. **Read-only token** for the data repo, gitignored beside the clone, so Claude can
+   fetch without him running `git pull` each session. Smaller blast radius than the
+   app's read+write token.
+3. **Return still queued**: the voice stone, next talk with the friend. Now joined by
+   q-0007's return — his brother, the inversion test spoken out loud.
+4. **8-week review (~mid-Oct)** — rewrite the success test before then. "≥3 bench
+   sessions" was written before the re-entry decision and measures the wrong thing now.
+
+## Next session
+
+Karamazov companion first (it is owed), then either the open thread on q-0007 or a fresh
+stone from the quarry. Do not spend the bench slot on the app: engineering is a separate
+budget line, decided 20 Sep. Growth only on demonstrated use — the v1→v2 law holds.
+
+Before any deploy: `cd tests && npm install && node run-tests.js`, and bump
+`APP_VERSION` + sw `CACHE` together. Pushing needs his Mac (credentials live in his
+keychain, not in Claude's sandbox); Claude commits, he pushes.

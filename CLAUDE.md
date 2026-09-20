@@ -33,8 +33,10 @@ corrections become guardrails.
 - His felt itch is exploratory-interpretive (what is this idea? what's new in it?), not
   adversarial. Strip + Place produced the session's yield.
 - Habits die at **life transitions**, not from daily friction (apartment renovation
-  killed prior routines). Design target now: habit within structured weeks. Re-entry
-  design: explicitly deferred.
+  killed prior routines). ~~Design target: habit within structured weeks.~~
+  **Contradicted by his own data, 20 Sep 2026:** all three captures in the first month
+  were made in *unstructured* time (a boat, an island, bed). The system feeds on slack,
+  not on structured weeks. Re-entry design is no longer deferred — see §7.
 
 ## §2 What this is
 
@@ -118,6 +120,18 @@ stones, and log reading — each touch in seconds.
   real data, import a backup into the suite's fixtures and test against it.
 - Backup: share-sheet/file export, `storage.persist()`, nag chip after 10 unlogged
   entries.
+- **Sync (v1.1.0, 20 Sep 2026)** — a **private** repo `tankebaenken-data` is the store;
+  the public repo holds only app code. `state.json` (app is the sole writer, merged per
+  entity id, last-write-wins on `updatedAt`, counters take the max) plus
+  `journal/YYYY-MM.md` (**authoritative, never generated** — the app appends, an editor
+  on the Mac edits freely). Fine-grained token, Contents read+write, stored in a
+  localStorage key *outside* `S` so it cannot reach the export or the repo. Local write
+  always succeeds first; a failed sync leaves entries `pending`, never lost. Full brief:
+  `SYNC-DESIGN.md`.
+- **Deploy trap, learned the hard way (v1.1.1):** the service worker's asset branch was
+  catching cross-origin GETs, so a 401 from a bad token was cached and replayed forever.
+  The SW must only ever handle its own origin, and must never cache a non-ok response.
+  A cached 200 would have been worse — silent, frozen state on both devices.
 
 ## §7 Decisions log
 
@@ -147,6 +161,42 @@ stones, and log reading — each touch in seconds.
   does the work for him, unbotherable by questions, takes time over suggestions,
   sharpens his thinking, gives expert reading advice, and actively steers him away
   from poor-quality writing (derivative pop, failed-replication science, padded books).
+
+- **2026-09-20** — **Re-entry configuration.** One month in: 0 bench sessions, 1 reading
+  session (25 min Goffman, 5 Sep), 3 captures — then 15 quiet days. He is mid-transition
+  (new flat, new rhythm), which §1 predicts. Decision: during re-entry the **bench is
+  dormant by design**, not missed weekly; journal and reading carry the practice. The
+  bench returns when a journal entry itches enough to bench. A dormant bench is not a
+  failed one.
+- **2026-09-20** — **Veto 2 refined, on his correction.** "No notes graveyard" defined
+  *use* as an output (card, Return, book). The aim is understanding and learning to
+  think, not producing outcomes. New test: **did it get worked**, not did it conclude.
+  An idea explored and left open has been used. An untouched capture is still a
+  graveyard item.
+- **2026-09-20** — **Strip was running as criticism.** Caught live by him: asking him to
+  pick a dimension "so a counterexample can exist" is Break's objective smuggled into
+  Strip. For an idea he has only met once, the need is more encounters, not a sharper
+  knife. Added an **exploratory mode** — what is in it, how far does it stretch — used
+  before or instead of Strip. Anti-death clause invoked mid-session; it worked.
+- **2026-09-20** — **"Break needs restraint" revised again.** The instrument is fine; the
+  posture was wrong. A counterexample thrown as a weapon kills a claim; held up as a
+  **probe** it asks why the case behaves differently. Repurpose, don't restrain — it is
+  his fastest instinct and it is genuinely exploratory when aimed right.
+- **2026-09-20** — **The journal enters**, replacing the paper one. One file per month in
+  the private data repo. Everything in one file, days and ideas together, no template,
+  no daily obligation. **No tags** (his objection, upheld: syntax imposed at writing
+  time does not get imposed) — the path back to use is a "→ quarry" button.
+- **2026-09-20** — **Fiction enters, without breaking the August decision.** Still no log,
+  no target, no minutes. Two rules, both on Claude: **one-way valve** (fiction may feed
+  the bench; the bench never assigns fiction) and **spoiler horizon** (he says where he
+  is; Claude answers strictly inside it). Companions only for hard classics on request,
+  never the easy shelf, and in a different format from Goffman's — a novel companion
+  prepares the eye without per-chapter watch-fors, which would turn discovery into
+  homework. First: Brothers Karamazov (Pevear & Volokhonsky, 796pp), paced against the
+  five-part Very Bad Wizards series, listened to *after* each stretch, never ahead.
+- **2026-09-20** — **Season 1 goes slow, deliberately.** Karamazov takes the recliner;
+  Goffman keeps the desk. Enthusiasm is scarcer than time, and seasons end on interest,
+  not calendar.
 
 ## §8 Risks
 
