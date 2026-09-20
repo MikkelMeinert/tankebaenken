@@ -381,6 +381,8 @@ section('11. Sync against a fake GitHub');
   ok(r.ok === true, 'sync picks up an entry written by hand in an editor');
   ok(TB.state.journal.entries.some(e=>e.id==='j-0042'), 'the hand-written entry appears in the app');
   ok(TB.state.counters.journal >= 42, 'the id counter catches up to the file, so ids cannot collide');
+  ok(TB.parseJournalMd('## 2026-09-21 10:00 · j-0050\n\n\n').length === 0,
+     'an abandoned heading with nothing under it is not shown as a blank entry');
   const fresh = TB.addJournal('Efter hånden.', '');
   ok(fresh.id === 'j-0043', 'the next app entry continues from the hand-written one');
 
