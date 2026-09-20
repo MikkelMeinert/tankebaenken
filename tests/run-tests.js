@@ -23,6 +23,34 @@ function section(name){ console.log('\n' + name); }
 
 /* A stand-in for the GitHub Contents API: an in-memory file store with shas,
    so sync is tested without a network and without a real repo. */
+/* Load sw.js in a sandbox and hand back its registered listeners, so the fetch
+   handler can actually be exercised rather than grepped for. */
+function loadServiceWorker(){
+  const vm = require('vm');
+  const listeners = {};
+  const noopCache = { addAll: async()=>{}, put: async()=>{}, match: async()=>undefined };
+  const selfObj = {
+    addEventListener: (name, fn)=>{ listeners[name] = fn; },
+    skipWaiting: ()=>{},
+    clients: { claim: ()=>{} },
+    location: { origin: 'https://mikkelmeinert.github.io' }
+  };
+  const ctx = vm.createContext({
+    self: selfObj, URL, console,
+    caches: { open: async()=>noopCache, keys: async()=>[], match: async()=>undefined, delete: async()=>true },
+    fetch: async()=>({ ok:true, clone(){ return this; } })
+  });
+  vm.runInContext(swSrc, ctx);
+  return listeners;
+}
+
+function swEvent(url, mode){
+  const ev = { responded: false,
+    request: { method:'GET', url, mode: mode||'cors', headers: { get: ()=>'' } },
+    respondWith(){ ev.responded = true; } };
+  return ev;
+}
+
 function fakeGitHub(){
   const files = new Map();
   let n = 0;
@@ -359,6 +387,33 @@ section('11. Sync against a fake GitHub');
   ok(gh.files.get(jpath).content.indexOf('Offline note.') > -1, 'the offline entry reached the repo');
   ok(TB.parseJournalMd(gh.files.get(jpath).content).length === 4, 'all four entries present, none duplicated');
   TB.setToken('');
+}
+
+/* ---------- 12. the service worker keeps its hands off the API ---------- */
+section('12. Service worker scope');
+{
+  const listeners = loadServiceWorker();
+  ok(typeof listeners.fetch === 'function', 'service worker registers a fetch handler');
+
+  const api = swEvent('https://api.github.com/repos/MikkelMeinert/tankebaenken-data/contents/journal/2026-09.md');
+  listeners.fetch(api);
+  ok(api.responded === false,
+     'cross-origin API requests are never intercepted (a cached 401 would outlive the bad token that caused it)');
+
+  const put = { responded:false, request:{method:'PUT', url:'https://api.github.com/x', mode:'cors', headers:{get:()=>''}},
+                respondWith(){ put.responded = true; } };
+  listeners.fetch(put);
+  ok(put.responded === false, 'non-GET requests are left alone');
+
+  const asset = swEvent('https://mikkelmeinert.github.io/tankebaenken/icon-180.png', 'no-cors');
+  listeners.fetch(asset);
+  ok(asset.responded === true, 'the app still serves its own assets from cache');
+
+  const page = swEvent('https://mikkelmeinert.github.io/tankebaenken/', 'navigate');
+  listeners.fetch(page);
+  ok(page.responded === true, 'the app still handles its own HTML');
+
+  ok(/res && res\.ok/.test(swSrc), 'only successful responses are ever written to the cache');
 }
 
 } // end main
