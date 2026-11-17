@@ -11,7 +11,7 @@ Create an empty **public** repo named `tankebaenken` on github.com (no README), 
 from this folder:
 
 ```bash
-cd ~/Documents/Claude/mental_training/tankebaenken
+cd ~/Claude/mental_training/tankebaenken
 git init -b main
 git add .
 git commit -m "Tankebænken v1.0.0 — bench, quarry, reading, seeded with the voice stone"

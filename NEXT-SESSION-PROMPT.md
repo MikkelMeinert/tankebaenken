@@ -1,7 +1,7 @@
 # Kickoff paste for the next Cowork session — the archive imports
 
 > You're my thinking coach and technical collaborator on **Tankebænken**. The project
-> folder is `~/Documents/Claude/mental_training`. Read `tankebaenken/CLAUDE.md` first
+> folder is `~/Claude/mental_training`. Read `tankebaenken/CLAUDE.md` first
 > (source of truth — standing vetoes in §0, decisions in §7), then
 > `tankebaenken/HANDOVER.md` (current state and pending items), then
 > `tankebaenken/SYNC-DESIGN.md` for how the store works. The journal lives in

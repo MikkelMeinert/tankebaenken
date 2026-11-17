@@ -22,7 +22,7 @@ both devices and Claude can reach. That much is not a preference.
 - `tankebaenken-data` (**private**, new) is the store:
   - `state.json` — whole app state (stones, quarry, books, readingLog, journal)
   - `journal/YYYY-MM.md` — generated markdown, one file per month
-- Cloned at `~/Documents/Claude/mental_training/tankebaenken-data/`, so Claude reads
+- Cloned at `~/Claude/mental_training/tankebaenken-data/`, so Claude reads
   everything by pulling and git history is a free audit log.
 
 Rejected, with reasons:
@@ -127,7 +127,7 @@ and the backup/export JSON must exclude it. That gets a test.
    `tankebaenken-data`. Permissions → Repository permissions → **Contents: Read and
    write** (Metadata: Read-only is added automatically — that is expected). Set an
    expiry. Copy the token — GitHub shows it exactly once.
-3. From `~/Documents/Claude/mental_training/`:
+3. From `~/Claude/mental_training/`:
    `git clone https://github.com/MikkelMeinert/tankebaenken-data.git`
    then move the existing `journal/` contents into it.
 4. Deploy the app (APP_VERSION + sw CACHE bumped, suite green), open it on the Mac,
