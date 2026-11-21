@@ -7,6 +7,10 @@ fork it. Sibling docs: `HANDOVER.md` (session state), `PROJECT-INSTRUCTIONS.md`
 
 ## §0 Standing vetoes — read first, enforce always
 
+**21 Nov 2026: Tankebænken is being folded into Overblik** (`~/Claude/overblik`, brief there, section 2 and
+`data/HUB.md` "Tankebænken in the app"). Overblik now writes this project's data repo in this app's formats. Two of
+the vetoes below were changed by Mikkel that day; see §7, 2026-11-21. This app stays live until he retires it.
+
 1. **Never boring.** Headline law. If a session or feature produces obligation without
    interest, it is wrong, whatever the plan said.
 2. **No notes graveyard.** Nothing is captured without a path back to use (quarry →
@@ -197,6 +201,18 @@ stones, and log reading — each touch in seconds.
 - **2026-09-20** — **Season 1 goes slow, deliberately.** Karamazov takes the recliner;
   Goffman keeps the desk. Enthusiasm is scarcer than time, and seasons end on interest,
   not calendar.
+
+- **2026-11-21**: **Folded into Overblik, on his word.** Journal, reading and idea capture move to the Overblik app,
+  on the same `tankebaenken-data` store and formats (ids allocated at sync time from the counters and the journal file).
+  This app is retired once Overblik has been used instead for a while; the repo and URL stay.
+- **2026-11-21**: **Fiction is logged** (overrules 2026-08-19 and the "never logged" part of 2026-09-20). What stays:
+  no push, reminder or target to read, ever.
+- **2026-11-21**: **Journal and reading are counted** (overrules veto 4 for these two): entries, minutes and sessions
+  go into Overblik's weekly line. Still banned: streaks, depth scores, red states.
+- **2026-11-21**: **The bench method goes; the mentor stays.** He never enjoyed the five-step bench. What he does like:
+  Claude as the mentor who discusses the ideas he noted and keeps the interesting ones for later investigation. The app
+  captures; each idea has a one-tap "Discuss with Claude" that opens a conversation with the idea and a mentoring
+  prompt. Ideas carry `kept` or `worked` besides `open`.
 
 ## §8 Risks
 
